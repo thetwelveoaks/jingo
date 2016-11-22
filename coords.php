@@ -56,9 +56,10 @@ function write_conv_coord($resp_array, $pks, $conn){
 			if(!($succ = $conn->query($sql_update))){
 				echo "(" . $conn->errno . ")" . $conn->error . "<br>";
 				return;
+			}else{
+				$log_cont = $pks[$index] . ": " . $coord['x'] . ", " . $coord['y'] . "\n";
+				file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 			}
-			$log_cont = $pks[$index] . ": " . $coord['x'] . ", " . $coord['y'] . "\n";
-			file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 			++$index;
 		}
 	}
@@ -95,14 +96,10 @@ set_time_limit(0);
 
 ini_set('memory_limit','5120M');
 
-
-$start = microtime(true);
-
-get_BD_coord(17000000, 19000000);
+get_BD_coord(19000000, 20000000);
 
 $time_elapsed_secs = microtime(true) - $start;
 
 echo $time_elapsed_secs . "<br>";
-
 
 ?>
