@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+        body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+    </style>
+    <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <title>批量转换</title> 
+</head>
+<body>
+    <div id="allmap"></div> 
+
+    <script type="text/javascript">
+
+      function display_markers(coords){
+        var points = [];
+        for(var index = 0; index != coords.length; ++index){
+            points.push(new BMap.Point(coords[index].x, coords[index].y));
+        }
+        var bm = new BMap.Map("allmap");
+        bm.centerAndZoom(new BMap.Point(116.378688937,39.9076296510), 15);
+        
+        for (var i = 0; i < points.length; i++) {
+            bm.addOverlay(new BMap.Marker(points[i]));
+            bm.setCenter(points[i]);
+        }
+      }
+
+      function requestGPS(cuid, since, until){
+
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if (this.readyState == 4 && this.status == 200) {
+            var coords = JSON.parse(this.responseText);
+            display_markers(coords);
+          }
+        };
+        xhttp.open("POST", "fetchGPS.php", true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+        var req_str = "CUID=" + cuid + "&since=" + since + "&until=" + until;
+        xhttp.send(req_str);
+      }
+
+      requestGPS(15, '2009-05-01 00:00:00', '2009-05-03 00:00:00');   
+
+    </script>
+</body>
+</html>
+
+
