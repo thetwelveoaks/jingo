@@ -13,7 +13,7 @@ function get_street($start, $end){
 	$location = "&location=";
 	
 	$log_file = "street_log.txt";
-	$pool_size = 100000;
+	$pool_size = 10000;
 
 	while($start < $end){
 		$sql_select = "SELECT BD09_LONG, BD09_LAT FROM JingoDB.BJTaxiGPS WHERE DataUnitID >= " 
@@ -27,17 +27,16 @@ function get_street($start, $end){
 				$resp_array = json_decode(curl_exec($curl), true);
 				if($resp_array['status'] != "0"){
 					echo "Error: " . $resp_array['status'] . "<br>";
-					$log_cont = $index . ": " . $row["BD09_LONG"] . ", " . $row["BD09_LAT"] . "\n";
-					file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 					return;
 				}
 				$street = $resp_array["result"]["addressComponent"]["street"];
 				$sql_update = "UPDATE JingoDB.BJTaxiGPS SET Street = '" . $street . "' WHERE DataUnitID = " . $index;
 				if(!$conn -> query($sql_update)){
 					echo "(" . $conn->errno . ")" . $conn->error . "<br>";
-					$log_cont = $index . ": " . $row["BD09_LONG"] . ", " . $row["BD09_LAT"] . "\n";
-					file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 					return;
+				}else{
+					$log_cont = $index . ": " . $row["BD09_LONG"] . ", " . $row["BD09_LAT"] . " ". $street . "\n";
+					file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 				}
 				++$index;
 			}
@@ -56,7 +55,7 @@ ini_set('memory_limit','1024M');
 
 $start = microtime(true);
 
-get_street(20000, 30000);
+get_street(660866, 800000);
 
 $time_elapsed_secs = microtime(true) - $start;
 

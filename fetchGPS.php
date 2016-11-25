@@ -3,8 +3,10 @@ include "db_utilities.php";
 
 function fetch_GPS($cuid, $since, $until){
 	$conn = connect_db();
-	$sql_select = "SELECT BD09_LONG, BD09_LAT FROM JingoDB.BJTaxiGPS WHERE CUID = " . $cuid 
-		. " AND UTC >= '" . $since . "' AND UTC < '" . $until . "';";
+	// $sql_select = "SELECT BD09_LONG, BD09_LAT FROM JingoDB.BJTaxiGPS WHERE CUID = " . $cuid 
+	// 	. " AND UTC >= '" . $since . "' AND UTC < '" . $until . "';";
+	$conn -> query("set names utf8;");
+	$sql_select = "SELECT BD09_LONG, BD09_LAT FROM JingoDB.BJTaxiGPS WHERE Street = '建国路'" ;
 	$result = $conn->query($sql_select);
 	$coords = array();
 	if($result->num_rows > 0){

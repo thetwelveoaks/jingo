@@ -24,7 +24,10 @@
         bm.centerAndZoom(new BMap.Point(116.378688937,39.9076296510), 15);
         
         for (var i = 0; i < points.length; i++) {
-            bm.addOverlay(new BMap.Marker(points[i]));
+            var marker = new BMap.Marker(points[i]);
+            var label = new BMap.Label(points[i].lng + ", " + points[i].lat, {offset:new BMap.Size(20,-10)});
+            marker.setLabel(label);
+            bm.addOverlay(marker);
             bm.setCenter(points[i]);
         }
       }
