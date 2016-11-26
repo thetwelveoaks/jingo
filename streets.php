@@ -3,16 +3,48 @@ include "db_utilities.php";
 
 // array(2) { ["status"]=> int(0) ["result"]=> array(8) { ["location"]=> array(2) { ["lng"]=> float(116.40913269046) ["lat"]=> float(39.812350039367) } ["formatted_address"]=> string(33) "北京市丰台区南苑路115号" ["business"]=> string(6) "南苑" ["addressComponent"]=> array(10) { ["country"]=> string(6) "中国" ["country_code"]=> int(0) ["province"]=> string(9) "北京市" ["city"]=> string(9) "北京市" ["district"]=> string(9) "丰台区" ["adcode"]=> string(6) "110106" ["street"]=> string(9) "南苑路" ["street_number"]=> string(6) "115号" ["direction"]=> string(6) "东北" ["distance"]=> string(2) "90" } ["pois"]=> array(0) { } ["poiRegions"]=> array(0) { } ["sematic_description"]=> string(35) "七彩华盛建材超市附近35米" ["cityCode"]=> int(131) } }
 
-function get_street($start, $end){
-	$conn = connect_db();
-	$conn -> query("set names utf8;");
+function request_street($location){
 	$curl = curl_init();
-	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 	$baidu_street = "http://api.map.baidu.com/geocoder/v2/?output=json";
 	$api_key = "&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i";
-	$location = "&location=";
-	
-	$log_file = "street_log.txt";
+	$req_url = $baidu_street . $api_key . $location;
+	curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+	curl_setopt($curl, CURLOPT_URL, $req_url);
+
+	$attemps = 10;
+	$resp_array = array('status' => -1);
+	do{
+		$resp = curl_exec($curl);
+		if($errno = curl_errno($curl)) {
+	    	$error_message = curl_strerror($errno);
+	    	echo "cURL error ({$errno}):\n {$error_message}" . "<br>";
+	    	--$attemps;
+	    	continue;
+		}
+		$resp_array = json_decode($resp, true);
+		--$attemps;
+	}while($resp_array['status'] != "0" && $attemps > 0);
+
+	curl_close($curl);
+	return $resp_array;
+}
+
+function write_street($id, $street){
+	$conn = connect_db();
+	$conn -> query("set names utf8;");
+	$succ = true;
+
+	$sql_update = "UPDATE JingoDB.BJTaxiGPS SET Street = '" . $street . "' WHERE DataUnitID = " . $id;
+	$attemps = 10;
+	while(!($succ = $conn->query($sql_update)) && $attemps > 0){
+		echo "(" . $conn->errno . ")" . $conn->error . "<br>";
+		--$attemps;
+	}
+	disconnect_db($conn);
+	return $succ;
+}
+function get_street($start, $end){
+	$conn = connect_db();
 	$pool_size = 10000;
 
 	while($start < $end){
@@ -22,29 +54,26 @@ function get_street($start, $end){
 		if($result->num_rows > 0){
 			$index = $start;
 			while($row = $result->fetch_assoc()){
-				$req_url = $baidu_street . $api_key . $location . $row["BD09_LAT"] . "," . $row["BD09_LONG"];
-				curl_setopt($curl, CURLOPT_URL, $req_url);
-				$resp_array = json_decode(curl_exec($curl), true);
+				$location = "&location=" . $row["BD09_LAT"] . "," . $row["BD09_LONG"];
+				$resp_array = request_street($location);
+
 				if($resp_array['status'] != "0"){
-					echo "Error: " . $resp_array['status'] . "<br>";
+					echo "Request Failed at " . $index . " (Error: " . $resp_array['status'] . ")<br>";
+					disconnect_db($conn);
 					return;
 				}
+				
 				$street = $resp_array["result"]["addressComponent"]["street"];
-				$sql_update = "UPDATE JingoDB.BJTaxiGPS SET Street = '" . $street . "' WHERE DataUnitID = " . $index;
-				if(!$conn -> query($sql_update)){
-					echo "(" . $conn->errno . ")" . $conn->error . "<br>";
+				if(!($succ = write_street($index, $street))){
+					echo "Update Failed at " . $index . "<br>";
+					disconnect_db($conn);
 					return;
-				}else{
-					$log_cont = $index . ": " . $row["BD09_LONG"] . ", " . $row["BD09_LAT"] . " ". $street . "\n";
-					file_put_contents($log_file, $log_cont, FILE_APPEND | LOCK_EX);
 				}
 				++$index;
 			}
 		}
 		$start += $pool_size;
 	}
-
-	curl_close($curl);
 	disconnect_db($conn);
 }
 
@@ -52,10 +81,9 @@ set_time_limit(0);
 
 ini_set('memory_limit','1024M');
 
-
 $start = microtime(true);
 
-get_street(660866, 800000);
+get_street(850656, 900000);
 
 $time_elapsed_secs = microtime(true) - $start;
 
