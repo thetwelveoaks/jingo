@@ -29,20 +29,6 @@ function request_street($location){
 	return $resp_array;
 }
 
-function write_street($id, $street){
-	$conn = connect_db();
-	$conn -> query("set names utf8;");
-	$succ = true;
-
-	$sql_update = "UPDATE JingoDB.BJTaxiGPS SET Street = '" . $street . "' WHERE DataUnitID = " . $id;
-	$attemps = 10;
-	while(!($succ = $conn->query($sql_update)) && $attemps > 0){
-		echo "(" . $conn->errno . ")" . $conn->error . "<br>";
-		--$attemps;
-	}
-	disconnect_db($conn);
-	return $succ;
-}
 function get_street($start, $end){
 	$conn = connect_db();
 	$pool_size = 10000;
@@ -83,7 +69,7 @@ ini_set('memory_limit','1024M');
 
 $start = microtime(true);
 
-get_street(2895675, 3100000);
+get_street(18000000, 20000000);
 
 $time_elapsed_secs = microtime(true) - $start;
 
