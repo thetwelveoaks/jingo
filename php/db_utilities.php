@@ -15,34 +15,39 @@ function disconnect_db($conn){
 	$conn->close();
 }
 
-function fetch_BDGPS($condition){
-	$conn = connect_db();
-	$sql_select = "SELECT DataUnitID, BD09_LONG, BD09_LAT FROM BJTaxiGPS WHERE " . $condition . ";";
-	// $conn -> query("set names utf8;");
-	// $sql_select = "SELECT BD09_LONG, BD09_LAT FROM JingoDB.BJTaxiGPS where DataUnitID >= 5795 and DataUnitID <= 5805" ;
-	$result = $conn->query($sql_select);
-	$coords = array();
-	if($result->num_rows > 0){
-		while($row = $result->fetch_assoc()){
-			$coords[] = array("id"=> $row["DataUnitID"], "x" => $row["BD09_LONG"], "y" => $row["BD09_LAT"]);
+function db_select($conn, $cols, $table, $cond){
+	$sql_select = "SELECT ";
+	foreach ($cols as $col) {
+		$sql_select .= "{$col},";
+	}
+	$sql_select = rtrim($sql_select, ",");
+	$sql_select .= " FROM {$table} WHERE {$cond};";
+	$ret = $conn->query($sql_select);
+	$res = array();
+	if($ret->num_rows > 0){
+		while($row = $ret->fetch_assoc()){
+			$curr = array();
+			foreach ($cols as $col) {
+				$curr[$col] = $row[$col];
+			}
+			$res[] = $curr;
 		}
 	}
-	disconnect_db($conn);
-	return $coords;
+	return $res;
 }
 
-function write_street($id, $street){
-	$conn = connect_db();
-	$conn -> query("set names utf8;");
-	$succ = true;
-	$sql_update = "UPDATE BJTaxiGPS SET Street = '" . $street . "' WHERE DataUnitID = " . $id;
-	$attemps = 10;
-	while(!($succ = $conn->query($sql_update)) && $attemps > 0){
-		echo "(" . $conn->errno . ")" . $conn->error . "<br>";
-		--$attemps;
+function db_update($conn, $table, $values, $cond){
+	$sql_update = "UPDATE {$table} SET ";
+	foreach ($values as $key => $value) {
+		if(is_numeric($value)){
+			$sql_update .= "{$key} = {$value},";
+		}else{
+			$sql_update .= "{$key} = '{$value}',";
+		}
 	}
-	disconnect_db($conn);
+	$sql_update = rtrim($sql_update, ",");
+	$sql_update .= " WHERE {$cond};";
+	$succ = $conn->query($sql_update);
 	return $succ;
 }
-
 ?>
