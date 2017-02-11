@@ -15,7 +15,7 @@ function disconnect_db($conn){
 	$conn->close();
 }
 
-function db_select($conn, $cols, $table, $cond){
+function db_select($conn, $cols, $table, $cond = "true"){
 	$sql_select = "SELECT ";
 	foreach ($cols as $col) {
 		$sql_select .= "{$col},";
@@ -50,4 +50,19 @@ function db_update($conn, $table, $values, $cond){
 	$succ = $conn->query($sql_update);
 	return $succ;
 }
+
+function db_insert($conn, $table, $values, $cond = "", $ignore = ""){
+	$sql_insert = "INSERT {$ignore} INTO {$table} ";
+	$cols = "";
+	$vals = "";
+	foreach ($values as $key => $value) {
+		$cols .= "{$key},";
+		$vals .= (is_numeric($value) ? "{$value}," : "'{$value}',");
+	}
+	$cols = rtrim($cols, ",");
+	$vals = rtrim($vals, ",");
+	$sql_insert .= "({$cols}) VALUES ({$vals}) {$cond};";
+	$conn->query($sql_insert);
+}
+
 ?>
