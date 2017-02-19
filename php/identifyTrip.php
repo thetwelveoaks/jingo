@@ -1,57 +1,49 @@
 <?php
 include "db_utilities.php";
 
-function fetch_Occupied($conn, $curr){
-	$sql_select = "SELECT Occupied FROM BJTaxiGPS WHERE DataUnitID = $curr;";
-	$result = $conn->query($sql_select);
-	$ret = "";
-	if($result->num_rows > 0){
-		$ret = $result->fetch_assoc()["Occupied"];
-	}
-	return $ret;
+function fetch_next($conn, $cols, $table, $id){
+	$cond = "DataUnitID = {$id}";
+	$res = db_select($conn, $table, $cols, $cond);
+	return count($res) > 0 ? $res[0] : null;
 }
 
-function update_TripID($conn, $curr, $tripid){
-	$sql_update = "UPDATE BJTaxiGPS SET TripID = $tripid WHERE DataUnitID = $curr;";
-	$attemps = 10;
-	while(!($ret = $conn->query($sql_update)) && $attemps > 0){
-		echo "(" . $conn->errno . ")" . $conn->error . "<br>";
-		--$attemps;
+function update_tripid($conn, $table, $id, $tripid){
+	$values = array("TripID" => $tripid);
+	$cond = "DataUnitID = {$id}";
+	$succ = db_update($conn, $table, $values, $cond);
+}
+
+function isSameTrip($last, $curr, $threshold){
+	if(is_null($last) || is_null($curr)){
+		return false;
 	}
-	return $ret;
+	return $curr['UnixEpoch'] - $last['UnixEpoch'] <= $threshold;
 }
 
 set_time_limit(0);
-$start = microtime(true);
-
 $conn = connect_db();
 
-$ret = "0";
-$curr = 39288816;
-$tripid = 2389144;
+$start = $_POST['start'];
+$end = $_POST['end'];
+$table = $_POST['table'];
+$cols = explode(",", $_POST['cols']);
+$tripid = $_POST['tripid'];
+$threshold = $_POST['threshold'];
 
-// $count = 100;
+$last = $curr = fetch_next($conn, $cols, $table, $start);
 
-do{
-	while($ret == "0"){
-		++$curr;
-		$ret = fetch_Occupied($conn, $curr);
-		// --$count;
-	}
-	$succ = true;
-	while($succ && $ret == "1"){
-		$succ = update_TripID($conn, $curr, $tripid);
-		++$curr;
-		$ret = fetch_Occupied($conn, $curr);
-		// --$count;
+while ($start < $end) {
+	while ($start < $end && isSameTrip($last, $curr, $threshold)) {
+		update_tripid($conn, $table, $start, $tripid);
+		$last = $curr;
+		$curr = fetch_next($conn, $cols, $table, ++$start);
 	}
 	++$tripid;
-}while($ret != "");
+	$last = $curr;
+}
+
+echo "{$tripid}\n";
 
 disconnect_db($conn);
-
-$time_elapsed_secs = microtime(true) - $start;
-
-echo $time_elapsed_secs . "<br>";
 
 ?>

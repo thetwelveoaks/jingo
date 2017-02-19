@@ -1,37 +1,39 @@
 <?php
 include "db_utilities.php";
 
-function insertLandmark($conn, $landmark){
-	$sql_insert = "INSERT INTO landmark (LandmarkID, LandmarkName, LandmarkCount)
-		VALUES (NULL, \"$landmark\", 1) ON DUPLICATE KEY UPDATE LandmarkCount = LandmarkCount + 1;";
-	$conn->query($sql_insert);
+function insertLandmark($conn, $table, $landmark){
+	$values = array("LandmarkName" => $landmark, "LandmarkCount" => 1);
+	$cond = "ON DUPLICATE KEY UPDATE LandmarkCount = LandmarkCount + 1";
+	$succ = db_insert($conn, $table, $values, $cond);
 }
 
-function fetchLandmark($conn, $tripid){
-	$sql_select = "SELECT Street from bjtaxigps where TripID = $tripid;";
-	$result = $conn->query($sql_select);
+function fetchLandmark($conn, $table, $tripid){
+	$cols = array("Street");
+	$cond = "TripID = {$tripid} group by Street";
+	$res = db_select($conn, $table, $cols, $cond);
 	$streets = array();
-	if($result->num_rows > 0){
-		while($row = $result->fetch_assoc()){
-			$streets[] = $row["Street"];
+	foreach ($res as $item) {
+		foreach ($item as $key => $value) {
+			$streets[] = $value;
 		}
 	}
-	return array_count_values($streets);
+	return $streets;
 }
 
 set_time_limit(0);
 ini_set('memory_limit','1024M');
 
 $conn = connect_db();
-$conn->set_charset("utf8");
 
 $start = $_POST['start'];
 $end = $_POST['end'];
+$data_table = $_POST['dtable'];
+$landmark_table = $_POST['ltable'];
 
 for($tripid = $start; $tripid != $end; ++$tripid){
-	$ret = fetchLandmark($conn, $tripid);
-	foreach ($ret as $key => $value) {
-    	insertLandmark($conn, $key);
+	$landmarks = fetchLandmark($conn, $data_table, $tripid);
+	foreach ($landmarks as $ldmk) {
+    	$succ = insertLandmark($conn, $landmark_table, $ldmk);
 	}
 }
 

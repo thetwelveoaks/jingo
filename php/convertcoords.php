@@ -37,7 +37,7 @@ function convert_coords($conn, $start, $end, $table){
 	
 	while($start < $end){
 		$cond = "DataUnitID >= {$start} and DataUnitID < {$end} limit {$limit_per_req}";
-		$res = db_select($conn, $in_cols, $table, $cond);
+		$res = db_select($conn, $table, $in_cols, $cond);
 		$coords_str = "&coords=";
 		foreach ($res as $coord) {
 			foreach ($in_cols as $col) {

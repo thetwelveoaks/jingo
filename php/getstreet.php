@@ -27,15 +27,14 @@ function send_request($location){
 	return $resp_array;
 }
 
-function get_street($conn, $start, $end){
+function get_street($conn, $start, $end, $table){
 	$limit_per_req = 1;
 	$out_cols = array("Street");
 	$in_cols = array("BD09_LAT", "BD09_LONG");
-	$table = "evaluation";
 
 	while($start < $end){
 		$cond = "DataUnitID >= {$start} AND DataUnitID < {$end} limit {$limit_per_req}";
-		$res = db_select($conn, $in_cols, $table, $cond);
+		$res = db_select($conn, $table, $in_cols, $cond);
 		$loc_str = "&location=";
 		foreach ($res as $loc) {
 			foreach ($in_cols as $col) {
@@ -62,7 +61,7 @@ $conn->set_charset("utf8");
 
 set_time_limit(0);
 
-get_street($conn, $_POST['start'], $_POST['end']);
+get_street($conn, $_POST['start'], $_POST['end'], $_POST['table']);
 
 disconnect_db($conn);
 ?>

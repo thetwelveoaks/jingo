@@ -8,6 +8,7 @@ function connect_db(){
 	}
 
 	$conn->select_db(DB_DATABASE);
+	$conn->set_charset("utf8");
 	return $conn;
 }
 
@@ -15,8 +16,11 @@ function disconnect_db($conn){
 	$conn->close();
 }
 
-function db_select($conn, $cols, $table, $cond = "true"){
-	$sql_select = "SELECT ";
+function db_select($conn, $table, $cols, $cond = "true", $distinct = ""){
+	$sql_select = "SELECT {$distinct} ";
+	if(count($cols) == 0){
+		$sql_select .= "*,";
+	}
 	foreach ($cols as $col) {
 		$sql_select .= "{$col},";
 	}
