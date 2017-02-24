@@ -25,14 +25,14 @@
         
         for (var i = 0; i < points.length; i++) {
             var marker = new BMap.Marker(points[i]);
-            var label = new BMap.Label(points[i].lng + ", " + points[i].lat, {offset:new BMap.Size(20,-10)});
-            marker.setLabel(label); 
+            // var label = new BMap.Label(points[i].lng + ", " + points[i].lat, {offset:new BMap.Size(20,-10)});
+            // marker.setLabel(label); 
             bm.addOverlay(marker);
             bm.setCenter(points[i]);
         }
       }
 
-      function requestGPS(cuid, since, until){
+      function requestGPS(num){
 
         var xhttp = new XMLHttpRequest();
         xhttp.onreadystatechange = function() {
@@ -41,14 +41,14 @@
             display_markers(coords);
           }
         };
-        xhttp.open("POST", "fetchGPS.php", true);
+        xhttp.open("POST", "../php/fetchGPS.php", true);
         xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-        var req_str = "CUID=" + cuid + "&since=" + since + "&until=" + until;
+        var req_str = "num=" + num;
         xhttp.send(req_str);
       }
 
-      requestGPS(15, '2009-05-01 00:00:00', '2009-05-03 00:00:00');   
+      requestGPS(1000);   
 
     </script>
 </body>

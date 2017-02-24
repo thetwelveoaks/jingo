@@ -1,21 +1,21 @@
 <?php
 include "db_utilities.php";
 
-class IdentifyTrip{
-
+class FixTrip{
 	private $cuid_start;
 	private $cuid_end;
 	private $table;
+	private $occup;
 	private $tripid;
-	private $threshold;
+
 	private $conn;
 
-	public function __construct($cuid_start, $cuid_end, $table, $tripid, $threshold){
+	public function __construct($cuid_start, $cuid_end, $table, $occup, $tripid){
 		$this->cuid_start = $cuid_start;
 		$this->cuid_end = $cuid_end;
 		$this->table = $table;
+		$this->occup = $occup;
 		$this->tripid = $tripid;
-		$this->threshold = $threshold;
 		$this->conn = connect_db();
 	}
 
@@ -23,25 +23,27 @@ class IdentifyTrip{
 		disconnect_db($this->conn);
 	}
 
-	public function startIdentifyTrip(){
-		$cols = array('DataUnitID', 'UnixEpoch');
+	public function startFixTrip(){
+		$cols = array('DataUnitID', 'TripID');
 		for($cuid = $this->cuid_start; $cuid != $this->cuid_end; ++$cuid){
-			$cond = "CUID = {$cuid}";
+			$cond = "CUID = {$cuid} AND OCCUPIED = {$this->occup}";
 			$res = db_select($this->conn, $this->table, $cols, $cond);
-			if(count($res) > 0){
-				$this->splitTrip($res, $cols);
+			if(count($res) != 0){
+				$this->fixTripID($res, $cols);
 			}
 		}
+		echo "{$this->tripid}\n";
 	}
 
-	public function splitTrip($res, $cols){
+	private function fixTripID($res, $cols){
 		$last = $curr = $res[0][$cols[1]];
 		foreach ($res as $item) {
 			$curr = $item[$cols[1]];
-			if($curr - $last > $this->threshold){
+			if($last != $curr){
 				++$this->tripid;
 			}
-			$values = array('TripID' => $this->tripid);
+			// echo "{$item[$cols[0]]},{$item[$cols[1]]},{$this->tripid}\n";
+			$values = array($cols[1] => $this->tripid);
 			$cond = "{$cols[0]} = {$item[$cols[0]]}";
 			$succ = db_update($this->conn, $this->table, $values, $cond);
 			$last = $curr;
@@ -50,12 +52,12 @@ class IdentifyTrip{
 	}
 }
 
-
 set_time_limit(0);
 ini_set('memory_limit','2048M');
 
-$identifyTrip = new IdentifyTrip($_POST['start'], $_POST['end'], $_POST['table'], 
-	$_POST['tripid'], $_POST['threshold']);
-$identifyTrip->startIdentifyTrip();
+$fixtrip = new FixTrip($_POST['start'], $_POST['end'], 
+	$_POST['table'], $_POST['occup'], $_POST['tripid']);
+
+$fixtrip->startFixTrip();
 
 ?>

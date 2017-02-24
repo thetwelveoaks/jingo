@@ -92,14 +92,13 @@ class NetBuilder{
 
 	public function buildnet(){
 		$ldmkpairs = $this->fetchLdmkPairs();
-		$count = 0;
+		$idx = $this->rankstart;
 		foreach ($ldmkpairs as $item) {
 			$arvldurpair = $this->fetchArvlDur($item[0], $item[1]);
 			$arvl = $arvldurpair[0];
 			$dur = $arvldurpair[1];
-			++$count;
-
-			$file_name = "input/{$count}.csv";
+			
+			$file_name = "input/{$idx}.csv";
 			// file_put_contents("input/{$ldmkU}_{$ldmkV}.csv", implode(',', $arvl) . "\n", FILE_APPEND);
 			// file_put_contents("input/{$ldmkU}_{$ldmkV}.csv", implode(',', $dur) . "\n", FILE_APPEND);
 
@@ -107,6 +106,8 @@ class NetBuilder{
 				file_put_contents($file_name, "{$arvl[$i]},{$dur[$i]}\n", FILE_APPEND | LOCK_EX);
 				// echo "{$arvl[$i]},{$dur[$i]}\n";
 			}
+
+			++$idx;
 
 			// for($i = 0; $i < count($ipt); ++$i){
 			// 	echo "{$ipt[$i]},";
