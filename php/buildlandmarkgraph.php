@@ -7,16 +7,20 @@ class GraphBuilder{
 	private $ldmktable;
 	private $triptable;
 	private $ldmklimit;
+	private $holi_table;
+	private $wrkd_table;
 
 	private $conn;
 	private $landmarks;
 
-	public function __construct($start, $end, $ldmktable, $triptable, $ldmklimit){
+	public function __construct($start, $end, $ldmktable, $triptable, $ldmklimit, $holi_table, $wrkd_table){
 		$this->start = $start;
 		$this->end = $end;
 		$this->ldmktable = $ldmktable;
 		$this->triptable = $triptable;
 		$this->ldmklimit = $ldmklimit;
+		$this->holi_table = $holi_table;
+		$this->wrkd_table = $wrkd_table;
 
 		$this->conn = connect_db();
 		$this->landmarks = $this->fetchldmk();
@@ -41,21 +45,17 @@ class GraphBuilder{
 		return array_key_exists($street, $this->landmarks);
 	}
 
-	// private function isLandmark($street){
-	// 	$cond = "LandmarkName = '{$street}' AND LandmarkID <= {$this->ldmklimit}";
-	// 	$res = db_select($this->conn, $this->ldmktable, array(), $cond);
-	// 	return count($res) > 0;
-	// }
-
 	private function isHoliday($atime){
-		$date = date('d', $atime);
+		// $date = date('d', $atime);
 		$day = date('w', $atime);
 
-		if($date == '01' || $date == '28' || $date == '29'){
-			return true;
-		}else if($date == '31'){
-			return false;
-		}else if($day == 0 || $day == 6){
+		// if($date == '01' || $date == '28' || $date == '29'){
+		// 	return true;
+		// }else if($date == '31'){
+		// 	return false;
+		// }else 
+
+		if($day == 0 || $day == 6){
 			return true;
 		}
 		return false;
@@ -85,8 +85,6 @@ class GraphBuilder{
 	private function addEdge($street_utc, $tripid){
 		$cols = array("LandmarkU", "Intermediate", 
 			"LandmarkV", "ArrivalTime", "LeavingTime", "Duration", "TripID");
-		$holi_table = "holi_ldmkgraph";
-		$wrkd_table = "wrkd_ldmkgraph";
 
 		$streets = array_keys($street_utc);
 		$size = count($streets);
@@ -115,9 +113,9 @@ class GraphBuilder{
 
 				$vals = array($landmarkU, $inbetween, $landmarkV, $atime, $ltime, $ltime - $atime, $tripid);
 				if($this->isHoliday($atime)){
-					db_insert($this->conn, $holi_table, array_combine($cols, $vals));
+					db_insert($this->conn, $this->holi_table, array_combine($cols, $vals));
 				}else{
-					db_insert($this->conn, $wrkd_table, array_combine($cols, $vals));
+					db_insert($this->conn, $this->wrkd_table, array_combine($cols, $vals));
 				}
 				
 			}
@@ -135,7 +133,7 @@ ini_set('memory_limit','2048M');
 date_default_timezone_set("Asia/Singapore");
 
 $graphBuilder = new GraphBuilder($_POST['start'], $_POST['end'], 
-	$_POST['ldmktable'], $_POST['triptable'], $_POST['ldmklimit']);
+	$_POST['ldmktable'], $_POST['triptable'], $_POST['ldmklimit'], $_POST['holi_table'], $_POST['wrkd_table']);
 
 $graphBuilder->buildGraph();
 

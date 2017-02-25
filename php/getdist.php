@@ -26,12 +26,12 @@ class DistCreator{
 			if(($handle = fopen("{$this->dir}{$edgeid}.csv", 'r')) !== FALSE){
 				$from = 0;
 				while(($line = fgetcsv($handle, 0, ',')) !== FALSE){
+					$line[1] = ($line[1] == 'Inf' ? 65535 : $line[1]);
+					$line[2] = ($line[2] == 'Inf' ? 65535 : $line[2]);
 					$vals = array($edgeid, $from, intval($line[0]), $line[1], $line[2]);
 					db_insert($this->conn, $this->dist_table, array_combine($cols, $vals));
 					$from = intval($line[0]);
 				}
-			}else{
-				echo "Wrong\n";
 			}
 		}
 	}

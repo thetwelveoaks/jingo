@@ -25,7 +25,7 @@
 			var cond = "DataUnitID >= " + start + " and DataUnitID < " + end + " and Street is null limit " + limit_per_req;
 			var get_street = new XMLHttpRequest();
 			get_street.open("POST", "../php/fetchBDGPS.php", true);
-        	get_street.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        	get_street.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
         	var req_str = "table=" + table + "&cond=" + cond;
         	get_street.send(req_str);
 
