@@ -33,7 +33,7 @@ class GraphTester{
 
 		while(!$queue->isEmpty()){
 			$head = $queue->dequeue();
-			$cond = "LandmarkU = '{$head}' and EdgeID <= 5000";
+			$cond = "LandmarkU = '{$head}' ";
 			$neighbours = db_select($this->conn, $this->ldmk_table, $cols, $cond);
 
 			foreach ($neighbours as $item) {

@@ -12,15 +12,17 @@ class NetBuilder{
 
 	private $ldmktable;
 	private $trvltimelimit;
+	private $path;
 
 	private $conn;
 
-	public function __construct($ldmktable, $triltimelimit, $rktable, $rkstart, $rkend){
+	public function __construct($ldmktable, $triltimelimit, $rktable, $rkstart, $rkend, $path){
 		$this->ldmktable = $ldmktable;
 		$this->trvltimelimit = $triltimelimit;
 		$this->ranktable = $rktable;
 		$this->rankstart = $rkstart;
 		$this->rankend = $rkend;
+		$this->path = $path;
 		$this->conn = connect_db();
 	}
 
@@ -98,7 +100,7 @@ class NetBuilder{
 			$arvl = $arvldurpair[0];
 			$dur = $arvldurpair[1];
 			
-			$file_name = "input/{$idx}.csv";
+			$file_name = "{$this->path}{$idx}.csv";
 			// file_put_contents("input/{$ldmkU}_{$ldmkV}.csv", implode(',', $arvl) . "\n", FILE_APPEND);
 			// file_put_contents("input/{$ldmkU}_{$ldmkV}.csv", implode(',', $dur) . "\n", FILE_APPEND);
 
@@ -138,7 +140,7 @@ ini_set('memory_limit','2048M');
 date_default_timezone_set("Asia/Singapore");
 
 $netBuilder = new NetBuilder($_POST['ldmktable'], $_POST['trvltimelimit'], 
-	$_POST['rktable'], $_POST['rkstart'], $_POST['rkend']);
+	$_POST['rktable'], $_POST['rkstart'], $_POST['rkend'], $_POST['path']);
 $netBuilder->buildnet();
 
 ?>

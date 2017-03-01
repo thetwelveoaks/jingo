@@ -8,14 +8,16 @@ class IdentifyTrip{
 	private $table;
 	private $tripid;
 	private $threshold;
+	private $occup;
 	private $conn;
 
-	public function __construct($cuid_start, $cuid_end, $table, $tripid, $threshold){
+	public function __construct($cuid_start, $cuid_end, $table, $tripid, $threshold, $occup){
 		$this->cuid_start = $cuid_start;
 		$this->cuid_end = $cuid_end;
 		$this->table = $table;
 		$this->tripid = $tripid;
 		$this->threshold = $threshold;
+		$this->occup = $occup;
 		$this->conn = connect_db();
 	}
 
@@ -26,7 +28,7 @@ class IdentifyTrip{
 	public function startIdentifyTrip(){
 		$cols = array('DataUnitID', 'UnixEpoch');
 		for($cuid = $this->cuid_start; $cuid != $this->cuid_end; ++$cuid){
-			$cond = "CUID = {$cuid}";
+			$cond = "CUID = {$cuid} and Occupied = {$this->occup}";
 			$res = db_select($this->conn, $this->table, $cols, $cond);
 			if(count($res) > 0){
 				$this->splitTrip($res, $cols);
@@ -55,7 +57,7 @@ set_time_limit(0);
 ini_set('memory_limit','2048M');
 
 $identifyTrip = new IdentifyTrip($_POST['start'], $_POST['end'], $_POST['table'], 
-	$_POST['tripid'], $_POST['threshold']);
+	$_POST['tripid'], $_POST['threshold'], $_POST['occup']);
 $identifyTrip->startIdentifyTrip();
 
 ?>

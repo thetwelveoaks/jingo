@@ -16,7 +16,7 @@ $coords = array();
 
 foreach ($ret as $item) {
 	$bd_cond = "Street = '{$item[$street_cols[0]]}' LIMIT 1";
-	$res = db_select($conn, 'bjtaxigps', $bd_cols, $bd_cond);
+	$res = db_select($conn, 'bjtaxigps_new', $bd_cols, $bd_cond);
 	$coords[] = array('x' => $res[0][$bd_cols[0]], 'y' => $res[0][$bd_cols[1]]);
 	// echo "{$res[0][$bd_cols[0]]},{$res[0][$bd_cols[1]]}\n";
 	// echo "{$item[$street_cols[0]]}\n";

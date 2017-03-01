@@ -56,7 +56,7 @@ class Evaluator{
 			if(count($ret) > 0){
 				$esti = $this->estimate(floatval($ret[0][$dist_cols[0]]), floatval($ret[0][$dist_cols[1]]));
 				$error = $durt - $esti;
-				// echo "{$edgeid}: {$arvl}, {$durt}, {$esti}, {$error}\n";
+				echo "{$edgeid}: {$arvl}, {$durt}, {$esti}, {$error}\n";
 				++$this->count;
 				$this->sq_error += pow($error, 2);
 			}

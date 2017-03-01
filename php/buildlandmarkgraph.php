@@ -46,16 +46,14 @@ class GraphBuilder{
 	}
 
 	private function isHoliday($atime){
-		// $date = date('d', $atime);
+		$date = date('d', $atime);
 		$day = date('w', $atime);
 
-		// if($date == '01' || $date == '28' || $date == '29'){
-		// 	return true;
-		// }else if($date == '31'){
-		// 	return false;
-		// }else 
-
-		if($day == 0 || $day == 6){
+		if($date == '01' || $date == '28' || $date == '29'){
+			return true;
+		}else if($date == '31'){
+			return false;
+		}else if($day == 0 || $day == 6){
 			return true;
 		}
 		return false;
