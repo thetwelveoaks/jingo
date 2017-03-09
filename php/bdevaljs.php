@@ -40,7 +40,7 @@
 			}
 			
 			if(idxu < points_u.length){
-				setTimeout(window.searchRoute.bind(null, idxu, idxv), 3000);
+				setTimeout(window.searchRoute.bind(null, idxu, idxv), 500);
 			}
 			
 		}
