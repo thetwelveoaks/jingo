@@ -13,7 +13,7 @@ $head_table = $_POST['head_table'];
 $path = $_POST['path'];
 
 $ldmk_cols = array('LandmarkName');
-$head_cols = array('DataUnitID', 'BD09_LONG', 'BD09_LAT', 'Head');
+$head_cols = array('BD09_LONG', 'BD09_LAT', 'Head');
 
 for($ldmk = $ldmk_start; $ldmk != $ldmk_end; ++$ldmk){
 	$ldmk_cond = "LandmarkID = {$ldmk}";
@@ -21,9 +21,9 @@ for($ldmk = $ldmk_start; $ldmk != $ldmk_end; ++$ldmk){
 	$ldmk_name = $ret[0][$ldmk_cols[0]];
 	$head_cond = "Street = '{$ldmk_name}'";
 	$ret = db_select($conn, $head_table, $head_cols, $head_cond);
-	$file_name = "{$path}{$ldmk}.csv";
+	$long_lat_filename = "{$path}{$ldmk}.csv";
 	foreach ($ret as $item) {
-		file_put_contents($file_name, "{$item[$head_cols[0]]},{$item[$head_cols[1]]},{$item[$head_cols[2]]},{$item[$head_cols[3]]}\n", FILE_APPEND | LOCK_EX);
+		file_put_contents($long_lat_filename, "{$item[$head_cols[0]]},{$item[$head_cols[1]]},{$item[$head_cols[2]]}\n", FILE_APPEND | LOCK_EX);
 	}
 }
 

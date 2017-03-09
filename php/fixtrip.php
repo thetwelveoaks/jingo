@@ -5,16 +5,14 @@ class FixTrip{
 	private $cuid_start;
 	private $cuid_end;
 	private $table;
-	private $occup;
 	private $tripid;
 
 	private $conn;
 
-	public function __construct($cuid_start, $cuid_end, $table, $occup, $tripid){
+	public function __construct($cuid_start, $cuid_end, $table, $tripid){
 		$this->cuid_start = $cuid_start;
 		$this->cuid_end = $cuid_end;
 		$this->table = $table;
-		$this->occup = $occup;
 		$this->tripid = $tripid;
 		$this->conn = connect_db();
 	}
@@ -23,12 +21,12 @@ class FixTrip{
 		disconnect_db($this->conn);
 	}
 
-	public function startFixTrip(){
+	public function startFixTrip($occup){
 		$cols = array('DataUnitID', 'TripID');
 		for($cuid = $this->cuid_start; $cuid != $this->cuid_end; ++$cuid){
-			$cond = "CUID = {$cuid} AND OCCUPIED = {$this->occup}";
+			$cond = "CUID = {$cuid} AND OCCUPIED = {$occup}";
 			$res = db_select($this->conn, $this->table, $cols, $cond);
-			if(count($res) != 0){
+			if(count($res) > 0){
 				$this->fixTripID($res, $cols);
 			}
 		}
@@ -55,9 +53,10 @@ class FixTrip{
 set_time_limit(0);
 ini_set('memory_limit','2048M');
 
-$fixtrip = new FixTrip($_POST['start'], $_POST['end'], 
-	$_POST['table'], $_POST['occup'], $_POST['tripid']);
+$fixtrip = new FixTrip($_POST['cuid_start'], $_POST['cuid_end'], 
+	$_POST['table'], $_POST['tripid_start']);
 
-$fixtrip->startFixTrip();
+$fixtrip->startFixTrip(1);
+$fixtrip->startFixTrip(0);
 
 ?>

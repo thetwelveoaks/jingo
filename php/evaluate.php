@@ -12,6 +12,7 @@ class Evaluator{
 	private $conn;
 	private $count;
 	private $sq_error;
+	private $err_ratio;
 
 	public function __construct($edge_start, $edge_end, $dist_table, $eval_table, $edge_table, $opti_index){
 		$this->edge_start = $edge_start;
@@ -24,6 +25,7 @@ class Evaluator{
 		$this->conn = connect_db();
 		$this->count = 0;
 		$this->sq_error = 0;
+		$this->err_ratio = 0;
 	}
 
 	public function __destruct(){
@@ -55,10 +57,12 @@ class Evaluator{
 			$ret = db_select($this->conn, $this->dist_table, $dist_cols, $dist_cond);
 			if(count($ret) > 0){
 				$esti = $this->estimate(floatval($ret[0][$dist_cols[0]]), floatval($ret[0][$dist_cols[1]]));
-				$error = $durt - $esti;
-				echo "{$edgeid}: {$arvl}, {$durt}, {$esti}, {$error}\n";
+				$error = $esti - $durt;
+				$ratio = $error / $durt;
+				echo "{$edgeid}: {$arvl}, {$durt}, {$esti}, {$error}, {$ratio}\n";
 				++$this->count;
 				$this->sq_error += pow($error, 2);
+				$this->err_ratio += pow($ratio, 2);
 			}
 		}
 	}
@@ -75,7 +79,8 @@ class Evaluator{
 
 		$mse = $this->sq_error / $this->count;
 		$rmse = sqrt($mse);
-		echo "Count = {$this->count}\nMSE = {$mse}\nRMSE = {$rmse}\n";
+		$avg_ratio = sqrt($this->err_ratio / $this->count);
+		echo "Count = {$this->count}\nMSE = {$mse}\nRMSE = {$rmse}\nAvg_Ratio = {$avg_ratio}\n";
 	}
 
 }

@@ -72,4 +72,10 @@ function db_insert($conn, $table, $values, $cond = "", $ignore = ""){
 	$conn->query($sql_insert);
 }
 
+function db_delete($conn, $table, $cond){
+	$sql_delete = "DELETE FROM {$table} WHERE {$cond};";
+	// $conn->query($sql_delete);
+	// echo "{$sql_delete}\n";
+}
+
 ?>

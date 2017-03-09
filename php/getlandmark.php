@@ -25,8 +25,8 @@ ini_set('memory_limit','2048M');
 
 $conn = connect_db();
 
-$start = $_POST['start'];
-$end = $_POST['end'];
+$start = $_POST['tripid_start'];
+$end = $_POST['tripid_end'];
 $data_table = $_POST['dtable'];
 $landmark_table = $_POST['ltable'];
 

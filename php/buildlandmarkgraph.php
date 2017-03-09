@@ -130,7 +130,7 @@ set_time_limit(0);
 ini_set('memory_limit','2048M');
 date_default_timezone_set("Asia/Singapore");
 
-$graphBuilder = new GraphBuilder($_POST['start'], $_POST['end'], 
+$graphBuilder = new GraphBuilder($_POST['tripid_start'], $_POST['tripid_end'], 
 	$_POST['ldmktable'], $_POST['triptable'], $_POST['ldmklimit'], $_POST['holi_table'], $_POST['wrkd_table']);
 
 $graphBuilder->buildGraph();

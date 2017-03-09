@@ -22,7 +22,7 @@
 			if(start >= end){
 				return;
 			}
-			var cond = "DataUnitID >= " + start + " and DataUnitID < " + end + " and Street = '建国路' limit " + limit_per_req;
+			var cond = "DataUnitID >= " + start + " and DataUnitID < " + end + " and Street is null limit " + limit_per_req;
 			var get_street = new XMLHttpRequest();
 			get_street.open("POST", "../php/fetchBDGPS.php", true);
         	get_street.setRequestHeader("Content-type", "application/x-www-form-urlencoded; charset=UTF-8");
