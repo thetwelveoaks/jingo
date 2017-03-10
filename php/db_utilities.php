@@ -68,8 +68,8 @@ function db_insert($conn, $table, $values, $cond = "", $ignore = ""){
 	$cols = rtrim($cols, ",");
 	$vals = rtrim($vals, ",");
 	$sql_insert .= "({$cols}) VALUES ({$vals}) {$cond};";
-	// echo "{$sql_insert}\n";
-	$conn->query($sql_insert);
+	echo "{$sql_insert}\n";
+	// $conn->query($sql_insert);
 }
 
 function db_delete($conn, $table, $cond){

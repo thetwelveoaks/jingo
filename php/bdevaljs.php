@@ -3,69 +3,122 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
 	<title>Evaluate</title>
-	<!-- <script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i"></script> -->
-	<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i&services=&t=20170308134931"></script>
-	<!-- <script type="text/javascript">
-		(function(){ 
-			window.BMap_loadScriptTime = (new Date("October 13, 2014 20:13:00")).getTime(); 
-			document.write('<script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i&services=&t=20170302134931"><\/script>');})();
-	</script> -->
-
-	<script type="text/javascript">	
-		var points_u, points_v;
-		function searchRoute(idxu, idxv){
-			var output = "";
-			var searchComplete = function (results){
-				if (transit.getStatus() != BMAP_STATUS_SUCCESS){
-					return ;
-				}
-				var plan = results.getPlan(0);
-				output += plan.getDuration(false) + "\n";                //获取时间
-				output += "总路程为：" ;
-				output += plan.getDistance(false) + "\n";             //获取距离
-
-				console.log(output);
-			}
-			var transit = new BMap.DrivingRoute("北京", 
-				{policy: BMAP_DRIVING_POLICY_LEAST_TIME, onSearchComplete: searchComplete});
-			transit.search(points_u[idxu], points_v[idxv]);
-
-			console.log("u: " + idxu);
-			console.log("v: " + idxv);
-
-			++idxv;
-			if(idxv == points_v.length){
-				++idxu;
-				idxv = 0;
-			}
-			
-			if(idxu < points_u.length){
-				setTimeout(window.searchRoute.bind(null, idxu, idxv), 500);
-			}
-			
-		}
-
-		function fetchPoints(ldmk){
-			points_u = [new BMap.Point(116.44060475580,39.94103167998), new BMap.Point(116.44037528907,39.94651487610)];
-			points_v = [new BMap.Point(116.44034296037,39.95010934190), new BMap.Point(116.44026139847,39.95327782944)];
-		}
-		function startEvaluation(edgeid_start, edgeid_end){
-			// for(var edgeid = edgeid_start; edgeid != edgeid_end; ++edgeid){
-				fetchPoints("");
-				// for(var idxu = 0; idxu != points_u.length; ++idxu){
-				// 	for(var idxv = 0; idxv != points_v.length; ++idxv){
-						searchRoute(0, 0);
-				// 	}
-				// }
-			// }
-		}
-	</script>
+	<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i"></script>
+	<!-- <script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=57xrHyB1Wj5mLxWgra9GTrBYtoSCvK9i&services=&t=20170308134931"></script> -->
 </head>
 <body>
-	<?php
-		echo "<script type=\"text/javascript\">
-				startEvaluation({$_GET['edgeid_start']}, {$_GET['edgeid_end']});
- 			</script>";
-	?>
+	
 </body>
+
+<script type="text/javascript">	
+
+	
+	
+	function searchRoute(){
+
+		if(index < coordsU.length){
+			transit.search(new BMap.Point(coordsU[index][0], coordsU[index][1]), 
+				new BMap.Point(coordsV[index][0], coordsV[index][1]));
+		}else{
+			var update_handle = new XMLHttpRequest();
+			update_handle.open("POST", "bdeval_jsrouter.php", true);
+			update_handle.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+			var content = {opcode : 'UPDATE', durations : durations, distances : distances, 
+				jingoeval : jingoeval, edgeid : edgeid, res_table : GET['res_table']};
+			var req_str = "content=" + JSON.stringify(content);
+			
+			update_handle.send(req_str);
+			update_handle.onreadystatechange = function() {
+	          	if (this.readyState == 4 && this.status == 200) {
+	          		console.log(this.responseText);
+	          		++edgeid;
+					fetchPoints();
+	          	}
+	    	};
+		}		
+	}
+
+	function fetchPoints(){
+		if(edgeid >= edgeid_end){
+			// console.log(JSON.stringify(durations));
+			// console.log(distances);
+			return;
+		}
+
+		durations = [];
+		distances = [];
+		index = 0;
+
+		var fetch_handle = new XMLHttpRequest();
+
+		fetch_handle.open("POST", "bdeval_jsrouter.php", true);
+		fetch_handle.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+		var content = GET;
+		content['edgeid'] = edgeid;
+		content['opcode'] = 'FETCH';
+
+		var req_str = "content=" + JSON.stringify(content);
+		fetch_handle.send(req_str);
+
+		fetch_handle.onreadystatechange = function() {
+          	if (this.readyState == 4 && this.status == 200) {
+          		// console.log(this.responseText);
+          		var res = JSON.parse(this.responseText);
+      			coordsU = res['bdeval'][0];
+      			coordsV = res['bdeval'][1];
+      			jingoeval = res['jingoeval'];
+      			searchRoute();
+          	}
+    	};
+	}
+
+	var GET = <?php echo json_encode($_GET); ?>;
+	var edgeid = GET['edgeid_start'], edgeid_end = GET['edgeid_end'];
+	var coordsU, coordsV;
+	var durations, distances;
+	var jingoeval;
+	var index;
+
+	var searchComplete = function (results){
+		if (transit.getStatus() != BMAP_STATUS_SUCCESS){
+			return ;
+		}
+		var plan = results.getPlan(0);
+		durations.push(plan.getDuration(false));
+		distances.push(plan.getDistance(false));
+		++index;
+		searchRoute();
+	}
+	var transit = new BMap.DrivingRoute("北京", 
+		{policy: BMAP_DRIVING_POLICY_LEAST_TIME, onSearchComplete: searchComplete});
+	
+
+	delete GET['edgeid_start'];
+	delete GET['edgeid_end'];
+
+
+	fetchPoints();
+	
+	// console.log(edgeid_start + "\n" + edgeid_end);
+
+	
+	// function startEvaluation(GET_ARRAY){
+	// 	GET = GET_ARRAY;
+	// 	console.log(GET['opcode']);
+	// 	// edgeid = edge_start;
+	// 	// edge_limit = edge_end;
+
+	// 	// fetchPoints();
+	// 	// 			searchRoute(0, 0);
+	// }
+</script>
+
+<!-- <?php
+		// echo "<script type=\"text/javascript\">
+		// 		startEvaluation({$_GET});
+ 	// 		</script>";
+	?> -->
 </html>
+
