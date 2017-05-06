@@ -13,7 +13,7 @@ $head_table = $_POST['head_table'];
 $path = $_POST['path'];
 
 $ldmk_cols = array('LandmarkName');
-$head_cols = array('BD09_LONG', 'BD09_LAT', 'Head');
+$head_cols = array('BD09_LONG', 'BD09_LAT');
 
 for($ldmk = $ldmk_start; $ldmk != $ldmk_end; ++$ldmk){
 	$ldmk_cond = "LandmarkID = {$ldmk}";
@@ -23,7 +23,7 @@ for($ldmk = $ldmk_start; $ldmk != $ldmk_end; ++$ldmk){
 	$ret = db_select($conn, $head_table, $head_cols, $head_cond);
 	$long_lat_filename = "{$path}{$ldmk}.csv";
 	foreach ($ret as $item) {
-		file_put_contents($long_lat_filename, "{$item[$head_cols[0]]},{$item[$head_cols[1]]},{$item[$head_cols[2]]}\n", FILE_APPEND | LOCK_EX);
+		file_put_contents($long_lat_filename, "{$item[$head_cols[0]]},{$item[$head_cols[1]]}\n", FILE_APPEND | LOCK_EX);
 	}
 }
 

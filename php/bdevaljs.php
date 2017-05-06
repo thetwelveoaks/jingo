@@ -12,10 +12,27 @@
 
 <script type="text/javascript">	
 
-	
-	
-	function searchRoute(){
+	function findMedian(data){
+		data.sort(function(a, b) {
+  			return a - b;
+		});
+		var mid = Math.floor(data.length / 2);
+		if(data.length % 2 == 1){
+			return data[mid];
+		}
 
+		return (data[mid] + data[mid - 1]) / 2;
+	}
+
+	function findMean(data){
+		var sum = 0;
+		for(var i = 0; i < data.length; ++i){
+			sum += data[i];
+		}
+		return sum / data.length;
+	}
+
+	function searchRoute(){
 		if(index < coordsU.length){
 			transit.search(new BMap.Point(coordsU[index][0], coordsU[index][1]), 
 				new BMap.Point(coordsV[index][0], coordsV[index][1]));
@@ -24,8 +41,10 @@
 			update_handle.open("POST", "bdeval_jsrouter.php", true);
 			update_handle.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
-			var content = {opcode : 'UPDATE', durations : durations, distances : distances, 
-				jingoeval : jingoeval, edgeid : edgeid, res_table : GET['res_table']};
+			var content = {opcode : 'UPDATE', BD_Median : findMedian(durations), BD_Mean : findMean(durations), 
+				Median_Dist : findMedian(distances), TimeOfDay : jingoeval[0], 
+				EdgeID : edgeid, Jingo_Est : jingoeval[1], res_table : res_table};
+
 			var req_str = "content=" + JSON.stringify(content);
 			
 			update_handle.send(req_str);
@@ -41,8 +60,6 @@
 
 	function fetchPoints(){
 		if(edgeid >= edgeid_end){
-			// console.log(JSON.stringify(durations));
-			// console.log(distances);
 			return;
 		}
 
@@ -51,7 +68,6 @@
 		index = 0;
 
 		var fetch_handle = new XMLHttpRequest();
-
 		fetch_handle.open("POST", "bdeval_jsrouter.php", true);
 		fetch_handle.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
@@ -75,50 +91,32 @@
 	}
 
 	var GET = <?php echo json_encode($_GET); ?>;
-	var edgeid = GET['edgeid_start'], edgeid_end = GET['edgeid_end'];
+	var edgeid = parseInt(GET['edgeid_start']), edgeid_end = parseInt(GET['edgeid_end']), res_table = GET['res_table'];
 	var coordsU, coordsV;
 	var durations, distances;
 	var jingoeval;
 	var index;
 
 	var searchComplete = function (results){
-		if (transit.getStatus() != BMAP_STATUS_SUCCESS){
-			return ;
+		if (transit.getStatus() == BMAP_STATUS_SUCCESS){
+			var plan = results.getPlan(0);
+			durations.push(plan.getDuration(false));
+			distances.push(plan.getDistance(false));
+		}else{
+			console.log("Calculation Failed: " + transit.getStatus());
 		}
-		var plan = results.getPlan(0);
-		durations.push(plan.getDuration(false));
-		distances.push(plan.getDistance(false));
 		++index;
 		searchRoute();
 	}
 	var transit = new BMap.DrivingRoute("北京", 
 		{policy: BMAP_DRIVING_POLICY_LEAST_TIME, onSearchComplete: searchComplete});
 	
-
 	delete GET['edgeid_start'];
 	delete GET['edgeid_end'];
-
+	delete GET['res_table'];
 
 	fetchPoints();
-	
-	// console.log(edgeid_start + "\n" + edgeid_end);
 
-	
-	// function startEvaluation(GET_ARRAY){
-	// 	GET = GET_ARRAY;
-	// 	console.log(GET['opcode']);
-	// 	// edgeid = edge_start;
-	// 	// edge_limit = edge_end;
-
-	// 	// fetchPoints();
-	// 	// 			searchRoute(0, 0);
-	// }
 </script>
-
-<!-- <?php
-		// echo "<script type=\"text/javascript\">
-		// 		startEvaluation({$_GET});
- 	// 		</script>";
-	?> -->
 </html>
 
