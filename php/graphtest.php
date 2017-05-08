@@ -1,13 +1,6 @@
 <?php
 include "db_utilities.php";
 
-class PriorityQueue extends SplPriorityQueue { 
-    public function compare($priority1, $priority2){ 
-        if ($priority1 === $priority2) return 0; 
-        return $priority1 > $priority2 ? -1 : 1; 
-    } 
-} 
-
 class GraphTester{
 	private $conn;
 
@@ -115,8 +108,7 @@ class GraphTester{
 
 		$ret = $this->getMinLdmk($ldmks);
 
-		$count = 1000;
-		while ($ret[0] && $count > 0) {
+		while ($ret[0]) {
 			$curr = $ret[1];
 			$ldmks[$curr]['visited'] = true;
 			$neighbours = $this->fetchNeighbours($curr);
@@ -127,74 +119,14 @@ class GraphTester{
 					$pred_graph[$nbr] = $curr;
 				}
 			}
-
 			$ret = $this->getMinLdmk($ldmks);
-			--$count;
 		}
-
-		echo "{$count}\n";
-
-		// $pq = new PriorityQueue();
-		// $pq->insert($ldmkU, $ldmks[$ldmkU]);
-		// $pq->setExtractFlags(SplPriorityQueue::EXTR_BOTH);
-
-		// 
-		// do{
-		// 	$head = $pq->extract();
-		// 	// if ($head["priority"] < $ldmks[$head["data"]] || abs($head["priority"] - $ldmks[$head["data"]]) < 1e-5) {
-				
-				
-
-
-		// 	// }
-
-			
-
-		// 	// while($pq->valid()){ 
-		// 	// 	    $head = $pq->current();
-		// 	// 	    echo "{$head['data']} => {$head['priority']}\n"; 
-		// 	// 	    $pq->next();
-		// 	// 	} 
-
-		// 	--$count;
-		// }while(!$pq->isEmpty() && $count > 0);
-
-		
-		// foreach ($ldmks as $ldmk => $value) {
-		// 		if ($value['cost'] < INF) {
-		// 			echo "{$ldmk} => {$value['cost']}\n";
-		// 		}
-		// 	}
 		
 		$this->printPath($pred_graph, $ldmkV);
+
+		$duration = $ldmks[$ldmkV]['cost'] - $ldmks[$ldmkU]['cost'];
+		echo "\n{$duration}\n";
 	}
-
-	// public function isConnected($ldmkU, $ldmkV){
-	// 	$cols = array('LandmarkV');
-	// 	$predecessors = array();
-
-	// 	$queue = new SplQueue();
-	// 	$predecessors[$ldmkU] = null;
-	// 	$queue->enqueue($ldmkU);
-
-	// 	while(!$queue->isEmpty()){
-	// 		$head = $queue->dequeue();
-	// 		$cond = "LandmarkU = '{$head}' ";
-	// 		$neighbours = db_select($this->conn, $this->ldmk_table, $cols, $cond);
-
-	// 		foreach ($neighbours as $item) {
-	// 			$curr = $item[$cols[0]];
-	// 			if($curr == $ldmkV){
-	// 				$predecessors[$curr] = $head;
-	// 				$this->printPath($predecessors, $curr);
-	// 				echo "\n";
-	// 			}else if(!array_key_exists($curr, $predecessors)){
-	// 				$predecessors[$curr] = $head;
-	// 				$queue->enqueue($curr);
-	// 			}
-	// 		}
-	// 	}
-	// }
 }
 
 set_time_limit(0);
